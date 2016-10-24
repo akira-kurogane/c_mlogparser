@@ -4,5 +4,4 @@ mlogfilter:	mlogfilter.c
 	gcc -o mlogfilter mlogfilter.o mlogfilter_opts.o
 
 clean:
-	rm mlogfilter
-#	rm mlogparser *.o
+	rm -f mlogfilter *.o
