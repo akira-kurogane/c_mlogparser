@@ -1,5 +1,7 @@
 mlogfilter:	mlogfilter.c
-	gcc -O2 mlogfilter.c -o mlogfilter
+	gcc -c mlogfilter_opts.c
+	gcc -O2 -c mlogfilter.c
+	gcc -o mlogfilter mlogfilter.o mlogfilter_opts.o
 
 clean:
 	rm mlogfilter
