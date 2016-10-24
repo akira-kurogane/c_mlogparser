@@ -91,11 +91,21 @@ int parse_cmd_options(int argc, char **argv, int* err_flag) {
       case 'm':
         filter_ts_start = realloc(filter_ts_start, strlen(optarg) + 1);
         strcpy(filter_ts_start, optarg);
+        //sanity enforcement
+        if (filter_ts_start && strlen(filter_ts_start) == 0) {
+          free(filter_ts_start);
+          filter_ts_start = NULL;
+        }
         break;
 
       case 'n':
         filter_ts_end = realloc(filter_ts_end, strlen(optarg) + 1);
         strcpy(filter_ts_end, optarg);
+        //sanity enforcement
+        if (filter_ts_end && strlen(filter_ts_end) == 0) {
+          free(filter_ts_end);
+          filter_ts_end = NULL;
+        }
         break;
 
       case 'c':
@@ -103,11 +113,12 @@ int parse_cmd_options(int argc, char **argv, int* err_flag) {
         strcpy(tmp_str, optarg);
         p = tmp_str;
         tnp_len = 1;
-        while (*p++) {
+        while (*p) {
           if (*p == ',') {
             *p = '\0';
             tnp_len++;
           }
+		  p++;
         }
         filter_components = realloc(filter_components, sizeof(char*) * (tnp_len + 1));
         p = tmp_str;
@@ -125,16 +136,18 @@ int parse_cmd_options(int argc, char **argv, int* err_flag) {
         strcpy(tmp_str, optarg);
         p = tmp_str;
         tnp_len = 1;
-        while (*p++) {
+        while (*p) {
           if (*p == ',') {
             *p = '\0';
             tnp_len++;
           }
+		  p++;
         }
         filter_threadname_prefixes = realloc(filter_threadname_prefixes, sizeof(char*) * (tnp_len + 1));
         p = tmp_str;
         for (i = 0; i < tnp_len; i++) {
           filter_threadname_prefixes[i] = malloc(strlen(p));
+printf("threadname str being added: %s\n", p);
           strcpy(filter_threadname_prefixes[i], p);
           p += strlen(p) + 1;
         }
@@ -143,9 +156,14 @@ int parse_cmd_options(int argc, char **argv, int* err_flag) {
         break;
 
       case 's':
-	//N.b. this one is to be used an array of single chars, each their own filter value. As opposed to filter_ts_start or filter_ts_start, which are strings, where the whole string will be one filter value.
+    //N.b. this one is to be used an array of single chars, each their own filter value. As opposed to filter_ts_start or filter_ts_start, which are strings, where the whole string will be one filter value.
         filter_severity_vals = realloc(filter_severity_vals, strlen(optarg) + 1);
         strcpy(filter_severity_vals, optarg);
+        //sanity enforcement
+        if (filter_severity_vals && strlen(filter_severity_vals) == 0) {
+          free(filter_severity_vals);
+          filter_components = NULL;
+        }
         break;
 
       case '?':
@@ -156,6 +174,15 @@ int parse_cmd_options(int argc, char **argv, int* err_flag) {
       default:
         *err_flag = 1;
     }
+  }
+
+  //sanity enforcement
+  if (filter_components[0] == NULL) {
+    filter_components = NULL;
+  }
+  //sanity enforcement
+  if (filter_threadname_prefixes[0] == NULL) {
+   filter_threadname_prefixes = NULL;
   }
 
   return optind; //return idx to non-option argv argument (would have been 
@@ -171,27 +198,41 @@ void dump_cmd_options() {
   printf("ts-start    = \"%s\"\n", filter_ts_start);
   printf("ts-end      = \"%s\"\n", filter_ts_end);
 
-  printf("component   = [ ");
-  i = 0;
-  p = filter_components[i];
-  while (p) {
-    printf("\"%s\", ", p);
-    p = filter_components[++i];
+  printf("component   = ");
+  if (filter_components) {
+    printf("[ ");
+    i = 0;
+    p = filter_components[i];
+    while (p) {
+      printf("\"%s\", ", p);
+      p = filter_components[++i];
+    }
+    printf("]");
+  } else {
+    printf("NULL");
   }
-  printf(" ]\n");
+  printf("\n");
 
-  printf("thread-name = [ ");
-  i = 0;
-  p = filter_threadname_prefixes[i];
-  while (p) {
-    printf("\"%s\", ", p);
-    p = filter_threadname_prefixes[++i];
+  printf("thread-name = ");
+  if (filter_threadname_prefixes) {
+    printf("[ ");
+    i = 0;
+    p = filter_threadname_prefixes[i];
+    while (p) {
+      printf("\"%s\", ", p);
+      p = filter_threadname_prefixes[++i];
+    }
+    printf(" ]");
+  } else {
+    printf("NULL");
   }
-  printf(" ]\n");
+  printf("\n");
 
   printf("severity    = [ ");
-  for (i = 0; i < strlen(filter_severity_vals); i++) {
-    printf("%c, ", filter_severity_vals[i]);
+  if (filter_severity_vals) {
+    for (i = 0; i < strlen(filter_severity_vals); i++) {
+      printf("%c, ", filter_severity_vals[i]);
+    }
   }
   printf(" ]\n");
 }

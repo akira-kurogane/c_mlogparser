@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "mlogfilter_opts.h"
+#include "ffc.h"
 
 void print_usage(FILE* fstr) {
   fprintf(fstr, "Usage: mlogfilter [options] <mongod or mongos log file>\n");
@@ -24,6 +26,18 @@ int main (int argc, char **argv) {
     exit(EXIT_FAILURE);
   }
 
+  if (verbose_flag) {
+    dump_cmd_options();
+  }
+
+  if (!filter_ts_start && !filter_ts_end && !filter_components &&
+      !filter_threadname_prefixes && !filter_severity_vals) {
+	fprintf(stderr, "Aborting. No point to using mlogfilter when there are no filter arguments\n");
+	fprintf(stderr, "Try --help for options description\n");
+    print_usage(stderr);
+    exit(EXIT_FAILURE);
+  }
+
   if (help_flag) {
     print_usage(stdout);
     printf("\n");
@@ -33,14 +47,11 @@ int main (int argc, char **argv) {
     free_options;
     exit(EXIT_SUCCESS);
   }
-//dump_cmd_options();
-
-  //TODO confirm there is a valid file, or STDIN if there is not
+  
   while (nonopt_arg_idx < argc) {
-    FILE *fstr;
-    printf("Yay, let's filter %s\n", argv[nonopt_arg_idx]);
-    //fstr = fopen(argv[nonopt_arg_idx], "r");
-    //fclose(fstr);
+    filter_file(argv[nonopt_arg_idx], verbose_flag, filter_ts_start,
+			    filter_ts_end, filter_components, filter_threadname_prefixes, 
+		        filter_severity_vals);
     nonopt_arg_idx++;
   }
 
