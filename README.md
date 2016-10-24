@@ -50,9 +50,6 @@ Options:
     Filter out log lines after this time. YYYY-MM-DDTHH:MM:SS format, 
     timezone of log file assumed. Is inclusive, e.g '2016-09-14' will really
     mean < 2016-09-15T00:00:00
-  -s, --severity
-    One or more of I, W, E, D. Join without spaces if multiple wanted. (Usually
-    not useful whilst doing broad search for events).
   -c, --component 
     Log component: (e.g. COMMAND, REPL, SHARDING, NETWORK). Comma-delimit to
     include multiple.
@@ -60,4 +57,7 @@ Options:
     Starting string for '[threadName]' filtering. Comma-delimit to include
     multiple. Case-sensitive. E.g. "conn,repl,Repl,rs" for both connection and
     replication threads.
+  -s, --severity
+    One or more of the single-character values I, W, E, D. Join without spaces
+    if multiple wanted.
 ```
