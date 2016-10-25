@@ -147,7 +147,6 @@ int parse_cmd_options(int argc, char **argv, int* err_flag) {
         p = tmp_str;
         for (i = 0; i < tnp_len; i++) {
           filter_threadname_prefixes[i] = malloc(strlen(p));
-printf("threadname str being added: %s\n", p);
           strcpy(filter_threadname_prefixes[i], p);
           p += strlen(p) + 1;
         }
