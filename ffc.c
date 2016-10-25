@@ -17,6 +17,8 @@ filter_lines(FILE* fstr, int verbose_flag,
   char* thrdnm;
   int r; //line should be filtered out
   int i;
+  size_t line_ctr = 0;
+  char* p;
 
   c = getc(fstr);
   if (c == EOF)
@@ -27,6 +29,7 @@ filter_lines(FILE* fstr, int verbose_flag,
 
   char* fgres = NULL;
   while (fgres = fgets(buf, bufsize, fstr)) {
+    line_ctr++;
     r = 0;
     if (buf[0] == '2' && buf[1] == '0' && buf[10] == 'T' && buf[19] == '.') { //looks like an ISO datetime at the front
 
@@ -41,16 +44,28 @@ filter_lines(FILE* fstr, int verbose_flag,
       while (*thrdnm == ' ') { //keep on sliding up further space chars
         thrdnm++;
       }
-      //todo ? confirm this current thrdnm points to a '[' char
-      thrdnm++; // move from the '[' char to one after
-      *(index(thrdnm, ' ')) = '\0'; //just in case
-      *(index(thrdnm, ']')) = '\0'; //todo ? confirm there was a ']' char on the end
+      if (*thrdnm != '[') { //this is not a properly formatted log line
+        r = 1;
+      } else {
+        thrdnm++; // move from the '[' char to one after
+        p = thrdnm;
+        while (*p != ']' && *p != '\0' && (p - thrdnm) < 32) {
+          p++;
+        }
+        if (*p != ']') { //this is not a properly formatted log line
+          r = 1;
+        } else {
+          *p = '\0';
+        }
+      }
 //printf("FIELDS: %s %s %s %s\n", ts, sev, cmpn, thrdnm);
 
+	  //todo optimization: once it starts, set true permanently, do any more strcmps
       if (!r && filter_ts_start && strcmp(filter_ts_start, ts) >= 0) {
         r = 1;
       }
 
+	  //todo optimization: once it becomes false exit func
       if (!r && filter_ts_end && strcmp(filter_ts_end, ts) < 0) {
         r = 1;
       }
@@ -90,7 +105,7 @@ filter_lines(FILE* fstr, int verbose_flag,
           if (filter_severity_vals[i] == *sev) {
             sev_match = 1;
           }
-					i++;
+          i++;
         }
         if (!sev_match) {
           r = 1;
@@ -106,8 +121,8 @@ filter_lines(FILE* fstr, int verbose_flag,
       *(ts + strlen(ts)) = ' ';
       *(sev + strlen(sev)) = ' ';
       *(cmpn + strlen(cmpn)) = ' ';
+      *(thrdnm + strlen(thrdnm) + 1) = ' '; //put the space back
       *(thrdnm + strlen(thrdnm)) = ']'; //put the ] back
-      *(thrdnm + strlen(thrdnm)) = ' '; //put the space back
 
       printf(buf);
     }
