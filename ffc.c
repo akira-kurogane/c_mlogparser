@@ -79,6 +79,7 @@ filter_lines(FILE* fstr, int verbose_flag,
   int i;
   size_t line_ctr = 0;
   char* p;
+  int ts_start_check = filter_ts_start ? 1 : 0; //optimization to avoid needless strcmp calls once ts times > filter_ts_start time
 
   c = getc(fstr);
   if (c == EOF)
@@ -120,9 +121,12 @@ filter_lines(FILE* fstr, int verbose_flag,
       }
 //printf("FIELDS: %s %s %s %s\n", ts, sev, cmpn, thrdnm);
 
-      //todo optimization: once it starts, set true permanently, do any more strcmps
-      if (!r && filter_ts_start && strcmp(filter_ts_start, ts) >= 0) {
-        r = 1;
+      if (!r && ts_start_check) {
+        if (strcmp(filter_ts_start, ts) >= 0) {
+          r = 1;
+        } else {
+          ts_start_check = 0;
+        }
       }
 
       //todo optimization: once it becomes false exit func
