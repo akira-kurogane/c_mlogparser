@@ -1,3 +1,4 @@
+#include <sys/time.h>
 #include <time.h>
 
 char iso_dt_fmt[18]; //"%Y-%m-%dT%H:%M:%S";
@@ -10,5 +11,6 @@ size_t common_ts_prefix_len;
 void init_datemanip();
 void auto_set_min_max_ts_strings();
 
+struct timeval str_to_timeval(const char* str, int* err);
 //from https://gmbabar.wordpress.com/2010/12/01/mktime-slow-use-custom-function/
-time_t time_to_epoch (const struct tm *ltm, int utcdiff_hrs, int utcdiff_mins);
+time_t time_to_epoch(const struct tm *ltm, int utcdiff_hrs, int utcdiff_mins);

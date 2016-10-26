@@ -1,15 +1,8 @@
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//#include <sys/time.h>
-////following two defines are for strptime
-//#define _XOPEN_SOURCE
-//#define __USE_XOPEN
+//following two defines are for strptime
+#define _XOPEN_SOURCE
+#define __USE_XOPEN
 #include "datemanip.h"
 
 //from https://gmbabar.wordpress.com/2010/12/01/mktime-slow-use-custom-function/
@@ -36,6 +29,33 @@ time_t time_to_epoch (const struct tm *ltm, int utcdiff_hrs, int utcdiff_mins) {
 void init_datemanip() {
   strcpy(iso_dt_fmt, "%Y-%m-%dT%H:%M:%S");
   iso_dt_fmt[17] = '\0';
+}
+
+struct timeval str_to_timeval(const char* str, int* err) {
+  const char* strptime_p = str;
+  struct tm tm;
+  struct timeval tv;
+  tv.tv_sec = 0;
+  tv.tv_usec = 0;
+  memset(&tm, 0, sizeof(struct tm));
+  strptime_p = strptime(str, iso_dt_fmt, &tm);
+  if (strptime_p != str + iso_fmt_len) {
+    *err = 1;
+    return tv;
+  }
+
+  const char *p = str + 20; //the end of the "YYYY-mm-ddTHH:MM:SS" string, one char after where the decimal for the milliseconds is expected to be
+  char *endptr;
+  tv.tv_usec = 1000 * strtol(p, &endptr, 10);
+  p += 4; //now move to the timezone string
+  if (*p == 'Z') {
+    tv.tv_sec = time_to_epoch(&tm, 0, 0);
+  } else {
+    int utc_offset;
+    utc_offset = (int)strtol(p, &endptr, 10);
+    tv.tv_sec = time_to_epoch(&tm, utc_offset / 100, utc_offset % 100);
+  }
+  return tv;
 }
 
 void auto_set_min_max_ts_strings() {
