@@ -11,9 +11,7 @@ void print_usage(FILE* fstr) {
 void print_desc() {
   printf("The fast log filter for mongod and mongos log files. Restricted to simple\n\
   string comparison logic. If there is --ts-start argument a bifurcated search\n\
-  will seek the beginning, i.e. avoid scanning the whole file. Without a\n\
-  --ts-start argument mlogfilter will create a cache file to make repeated\n\
-  searches faster.\n");
+  will seek the beginning, i.e. avoid scanning the whole file.\n");
 }
 
 int main (int argc, char **argv) {
@@ -21,7 +19,15 @@ int main (int argc, char **argv) {
   int opt_err_flag = 0;
   int nonopt_arg_idx = parse_cmd_options(argc, argv, &opt_err_flag);
 
-  if (opt_err_flag || nonopt_arg_idx >= argc) {
+  if (help_flag) {
+    print_usage(stdout);
+    printf("\n");
+    print_desc();
+    printf("\n");
+    print_options_help();
+    free_options;
+    exit(EXIT_SUCCESS);
+  } else if (opt_err_flag || nonopt_arg_idx >= argc) {
     print_usage(stderr);
     exit(EXIT_FAILURE);
   }
@@ -38,16 +44,6 @@ int main (int argc, char **argv) {
     exit(EXIT_FAILURE);
   }
 
-  if (help_flag) {
-    print_usage(stdout);
-    printf("\n");
-    print_desc();
-    printf("\n");
-    print_options_help();
-    free_options;
-    exit(EXIT_SUCCESS);
-  }
-  
   while (nonopt_arg_idx < argc) {
     filter_file(argv[nonopt_arg_idx], verbose_flag, filter_ts_start,
 			    filter_ts_end, filter_components, filter_threadname_prefixes, 
